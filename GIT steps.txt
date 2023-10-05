@@ -1,6 +1,16 @@
 Step 1: git status
 Step 2: git add
-Step 3: git commit
+Step 3: git commit -m "message"
 Step 4: git push origin master
 
+<<<<<<< HEAD
 These are the changes made
+=======
+
+#Rebase
+Step 1: git fetch origin
+Step 2: git rebase origin/master
+Step 3: git checkout master
+Step 4: git merge <branch name>
+Step 5: git push origin master
+>>>>>>> da686c3 (rebase steps added)
