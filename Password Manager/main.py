@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from random import randint, choice, shuffle
 import pyperclip
+import json
 
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
@@ -30,11 +31,39 @@ def generate_password():
     pyperclip.copy(password)
 
 
+# ---------------------------- SEARCH DATA ------------------------------- #
+def search_data():
+    try:
+        with open("data.json", "r") as data_file:
+            passwords = json.load(data_file)
+    except FileNotFoundError:
+        messagebox.showinfo(title="Error", message="No Data File Found")
+    else:
+        entered_web = web_entry.get().title()
+        if len(entered_web) == 0:
+            messagebox.showinfo(message="Please enter website name!")
+        else:
+            if entered_web in passwords:
+                web_email = passwords[entered_web]["email"]
+                web_pass = passwords[entered_web]["password"]
+                messagebox.showinfo(title=entered_web, message=f"Email: {web_email}\nPassword: {web_pass}")
+            else:
+                messagebox.showinfo(title="Error", message=f"No Details for {entered_web} exists.")
+                web_entry.delete(0, END)
+
+
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def add_data():
     entered_web = web_entry.get()
     entered_email = email_entry.get()
     entered_pass = password_entry.get()
+
+    new_data = {
+        entered_web.title(): {
+            "email": entered_email,
+            "password": entered_pass,
+        }
+    }
 
     web_length = len(entered_web)
     pass_length = len(entered_pass)
@@ -42,13 +71,17 @@ def add_data():
     if web_length == 0 or pass_length == 0:
         messagebox.showinfo(message="Please don't leave  any fields empty!")
     else:
-        is_ok = messagebox.askokcancel(title=entered_web, message=f"These are the details you Entered: \n"
-                                                                  f"Email: {entered_email}\nPassword: {entered_pass}\n"
-                                                                  f"Is it ok t save?")
-        if is_ok:
-            data = open("data.txt", mode="a")
-            data.write(f"{entered_web} | {entered_email} | {entered_pass}\n")
-            data.close()
+        try:
+            with open("data.json", "r") as data_file:
+                data = json.load(data_file)
+                data.update(new_data)
+        except FileNotFoundError:
+            with open("data.json", "w") as data_file:
+                json.dump(new_data, data_file, indent=4)
+        else:
+            with open("data.json", "w") as data_file:
+                json.dump(data, data_file, indent=4)
+        finally:
             web_entry.delete(0, END)
             password_entry.delete(0, END)
 
@@ -81,8 +114,8 @@ password_label.grid(column=0, row=3)
 # Entries
 
 # Website Entry
-web_entry = Entry(width=35)
-web_entry.grid(column=1, row=1, columnspan=2, sticky="EW")
+web_entry = Entry(width=32)
+web_entry.grid(column=1, row=1, sticky="W")
 web_entry.focus()
 
 # Email Entry
@@ -99,6 +132,10 @@ password_entry.grid(column=1, row=3, sticky="W")
 # Generate Password Button
 generate_password = Button(text="Generate Password", command=generate_password)
 generate_password.grid(column=2, row=3, sticky="EW")
+
+# Search Button
+search_button = Button(text="Search", command=search_data)
+search_button.grid(column=2, row=1, sticky="EW")
 
 # Add Button
 add_button = Button(text="Add", width=36, command=add_data)
